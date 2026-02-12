@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>過年打地鼠</title>
+
+<style>
+body{
+    text-align:center;
+    font-family:Arial;
+    background:#f2f2f2;
+    margin:0;
+}
+
+h1{
+    margin-top:15px;
+}
+
+#gameBoard{
+    display:grid;
+    grid-template-columns:repeat(3,110px);
+    grid-gap:10px;
+    justify-content:center;
+    margin-top:20px;
+}
+
+.cell{
+    width:110px;
+    height:110px;
+    border:2px solid #999;
+    cursor:pointer;
+    object-fit:cover;
+    background:white;
+}
+
+button{
+    margin:6px;
+    padding:8px 14px;
+    font-size:14px;
+    cursor:pointer;
+}
+
+#infoBox{
+    display:none;
+    width:85%;
+    margin:15px auto;
+    padding:15px;
+    background:white;
+    border:2px solid #333;
+    border-radius:8px;
+}
+
+#result{
+    margin-top:24px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+#followLink{
+    display:none;
+    margin-top:10px;
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>過年打地鼠</h1>
+
+<button onclick="startGame()">開始 / 再玩一次</button>
+<button onclick="toggleInfo()">前情提要&遊戲規則</button>
+
+<div id="infoBox">
+    <p>在那個小小多光電板的島嶼上，老鼠逐漸猖獗，
+    可能影響島上的衛生環境與居民健康...</p>
+    <p>🔨 點擊老鼠得分：</p>
+    <p>造謠鼠 +10分</p>
+    <p>萊爾鼠 +15分</p>
+    <p>台毒鼠 +10分</p>
+    <p>蜜獾 → 直接結束遊戲</p>
+    <p>遊戲時間 32 秒</p>
+</div>
+
+<h2>剩餘時間：<span id="time">32</span> 秒</h2>
+
+<div id="gameBoard"></div>
+
+<h2>目前分數：<span id="score">0</span></h2>
+
+<div id="result"></div>
+
+<div id="followLink">
+👉 <a href="https://www.facebook.com/profile.php?id=61578306011159" target="_blank">
+點我追蹤粉絲專頁
+</a>
+</div>
+
+<script>
+let score = 0;
+let timeLeft = 32;
+let gameInterval;
+let switchInterval;
+let gameActive = false;
+
+const board = document.getElementById("gameBoard");
+
+// 機率設定
+function getRandomImage(){
+    let r = Math.random();
+    if(r < 0.70) return "blank";
+    else if(r < 0.75) return "honey";
+    else if(r < 0.80) return "liar";
+    else if(r < 0.90) return "rumor";
+    else return "tai";
+}
+
+// 建立九宮格
+for(let i=0;i<9;i++){
+    let cell = document.createElement("img");
+    cell.classList.add("cell");
+    cell.dataset.type = "blank";
+    cell.src = "blank.png";
+    cell.onclick = function(){ hit(cell); };
+    board.appendChild(cell);
+}
+
+function switchImages(){
+    if(!gameActive) return;
+    let cells = document.querySelectorAll(".cell");
+    cells.forEach(cell=>{
+        let type = getRandomImage();
+        cell.dataset.type = type;
+
+        if(type==="blank") cell.src="blank.png";
+        if(type==="honey") cell.src="honey_badger.png";
+        if(type==="liar") cell.src="liar_mouse.png";
+        if(type==="rumor") cell.src="rumor_mouse.png";
+        if(type==="tai") cell.src="tai_mouse.png";
+    });
+}
+
+function hit(cell){
+    if(!gameActive) return;
+
+    let type = cell.dataset.type;
+
+    if(type==="rumor") score+=10;
+    if(type==="liar") score+=15;
+    if(type==="tai") score+=10;
+
+    if(type==="honey"){
+        endGame();
+        return;
+    }
+
+    document.getElementById("score").innerText = score;
+}
+
+function startGame(){
+    score=0;
+    timeLeft=32;
+    gameActive=true;
+
+    document.getElementById("score").innerText=score;
+    document.getElementById("time").innerText=timeLeft;
+    document.getElementById("result").innerText="";
+    document.getElementById("followLink").style.display="none";
+
+    clearInterval(gameInterval);
+    clearInterval(switchInterval);
+
+    switchImages();
+
+    gameInterval=setInterval(()=>{
+        timeLeft--;
+        document.getElementById("time").innerText=timeLeft;
+        if(timeLeft<=0) endGame();
+    },1000);
+
+    switchInterval=setInterval(switchImages,1500);
+}
+
+function endGame(){
+    gameActive=false;
+    clearInterval(gameInterval);
+    clearInterval(switchInterval);
+
+    let message="";
+    if(score<100)
+        message="總分: "+score+"分 要加油喔! 還有不少老鼠!";
+    else if(score<120)
+        message="總分: "+score+"分 不錯喔! 可以再玩一次!";
+    else
+        message="總分: "+score+"分 恭喜您! 您是對付壞老鼠的專家!";
+
+    document.getElementById("result").innerText=message;
+    document.getElementById("followLink").style.display="block";
+}
+
+function toggleInfo(){
+    let box=document.getElementById("infoBox");
+    box.style.display = (box.style.display==="none") ? "block" : "none";
+}
+</script>
+
+</body>
+</html>
